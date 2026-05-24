@@ -73,25 +73,6 @@ jobs:
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
             NEXT_PUBLIC_APP_NAME=${{ secrets.NEXT_PUBLIC_APP_NAME }}
 
-      - name: Setup EC2 Directory
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          port:     22
-          script:   mkdir -p /home/ubuntu/job-recommendation
-
-      - name: Copy docker-compose.yml to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host:     ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key:      ${{ secrets.EC2_SSH_KEY }}
-          port:     22
-          source:   "docker-compose.yml"
-          target:   "/home/ubuntu/job-recommendation"
-
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -122,10 +103,22 @@ jobs:
             echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             echo "──────────────────────────────────────────"
-            echo "🔄 Pulling latest image and restarting containers"
+            echo "🔄 Pulling latest image and restarting container"
             echo "──────────────────────────────────────────"
-            sudo docker compose pull
-            sudo docker compose up -d --remove-orphans
+            # Stop and remove the old container if it's running
+            sudo docker rm -f job-recommendation-app || true
+            
+            # Pull the new image
+            sudo docker pull ghcr.io/bharatsirvi/job-search-automation:latest
+
+            # Run the container with all necessary settings
+            sudo docker run -d \
+              --name job-recommendation-app \
+              -p 3000:3000 \
+              --env-file /home/ubuntu/job-recommendation/.env.local \
+              --restart always \
+              --memory=512m \
+              ghcr.io/bharatsirvi/job-search-automation:latest
 
             echo "──────────────────────────────────────────"
             echo "👋 Logging out of GHCR"
@@ -145,14 +138,14 @@ jobs:
               sleep 5
               if [ "$i" -eq 12 ]; then
                 echo "❌ Health check failed after 60s"
-                sudo docker compose logs --tail=50 nextjs-app
+                sudo docker logs --tail=50 job-recommendation-app
                 exit 1
               fi
             done
 
             echo "──────────────────────────────────────────"
             echo "📊 Container status:"
-            sudo docker compose ps
+            sudo docker ps | grep job-recommendation-app
             echo "✅ Deployment complete!"
             echo "──────────────────────────────────────────"
 
