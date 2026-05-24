@@ -1,0 +1,89 @@
+services:
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Inject NEXT_PUBLIC_* vars into the build stage only.
+      # These values come from .env.local on the EC2 server at build time.
+      args:
+        NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_APP_URL:           ${NEXT_PUBLIC_APP_URL}
+        NEXT_PUBLIC_APP_NAME:          ${NEXT_PUBLIC_APP_NAME}
+
+    image: job-recommendation-app:latest
+    container_name: job-recommendation-app
+
+    # Auto-restart on crash AND on EC2 reboot.
+    # This replaces the need for PM2 inside the container.
+    restart: always
+
+    ports:
+      - "3000:3000"
+
+    # Runtime secrets (e.g. SUPABASE_SERVICE_ROLE_KEY) are injected here.
+    # These are NEVER baked into the Docker image.
+    env_file:
+      - .env.local
+
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+
+    # Persist Next.js cache between restarts to speed up cold starts
+    volumes:
+      - nextjs_cache:/app/.next/cache
+      - ./logs:/app/logs   # Surface PM2/app logs to host for easy inspection
+
+    # Docker-level health check — marks container unhealthy before routing traffic
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s   # Give Next.js time to cold-start before first check
+
+    # Memory limits — tune to your EC2 instance type:
+    # t3.micro → 512M limit / t3.small → 1G limit / t3.medium → 2G limit
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+    # Shared network — allows n8n and this app to communicate internally
+    # if they share the same compose project or the same Docker network.
+    networks:
+      - app-network
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Nginx — Uncomment when you connect a domain name
+  # ─────────────────────────────────────────────────────────────────────────
+  # nginx:
+  #   image: nginx:1.27-alpine
+  #   container_name: nginx-proxy
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro   # Certbot SSL certs
+  #   depends_on:
+  #     nextjs-app:
+  #       condition: service_healthy   # Wait for health check to pass first
+  #   networks:
+  #     - app-network
+
+volumes:
+  nextjs_cache:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+    # ── If n8n already runs on an external Docker network, reference it: ──
+    # external: true
+    # name: n8n_default

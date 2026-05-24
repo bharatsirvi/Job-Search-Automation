@@ -1,0 +1,58 @@
+# ── Build artifacts (re-generated inside container) ───────────────────────
+.next/
+out/
+
+# ── Dependencies (re-installed inside container via npm ci) ───────────────
+node_modules/
+
+# ── ALL environment files — secrets must NEVER be in the image ────────────
+.env
+.env.*
+!.env.example   # Allow the example template (no real values)
+
+# ── Git internals (not needed inside image) ───────────────────────────────
+.git/
+.gitignore
+.github/
+
+# ── Dev / test tooling ────────────────────────────────────────────────────
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__/
+coverage/
+.jest*
+eslint.config*
+.eslintrc*
+*.eslintignore
+
+# ── Documentation ─────────────────────────────────────────────────────────
+README.md
+AGENTS.md
+CLAUDE.md
+*.md
+
+# ── Editor / OS ───────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── Supabase / scratch / dev scripts ─────────────────────────────────────
+supabase-schema.sql
+scratch_check.js
+test_db.js
+
+# ── PM2 logs (mounted as a volume, not copied into image) ─────────────────
+logs/
+
+# ── Nginx config (mounted as a volume, not needed in Next.js image) ───────
+nginx/
+
+# ── Docker files themselves ───────────────────────────────────────────────
+Dockerfile*
+docker-compose*
+.dockerignore
