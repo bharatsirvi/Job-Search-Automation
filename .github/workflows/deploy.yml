@@ -130,7 +130,7 @@ jobs:
             echo "──────────────────────────────────────────"
             # Poll /api/health for up to 60 seconds
             for i in $(seq 1 12); do
-              if curl -sf http://localhost:3000/api/health > /dev/null; then
+              if curl -sf http://localhost/api/health > /dev/null; then
                 echo "✅ App is healthy!"
                 break
               fi
