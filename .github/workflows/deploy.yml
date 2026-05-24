@@ -114,7 +114,7 @@ jobs:
             # Run the container with all necessary settings
             sudo docker run -d \
               --name job-recommendation-app \
-              -p 3000:3000 \
+              -p 80:3000 \
               --env-file /home/ubuntu/job-recommendation/.env.local \
               --restart always \
               --memory=512m \
