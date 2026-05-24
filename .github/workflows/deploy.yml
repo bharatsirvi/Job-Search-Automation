@@ -41,10 +41,37 @@ jobs:
     runs-on: ubuntu-latest
     needs: validate          # Only deploy if lint + type-check passes
     environment: production  # Requires manual approval in GitHub if configured
+    permissions:
+      contents: read
+      packages: write        # Required to push to GHCR
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/bharatsirvi/job-search-automation:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_APP_NAME=${{ secrets.NEXT_PUBLIC_APP_NAME }}
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.2.0
@@ -76,20 +103,25 @@ jobs:
             git fetch --all
             git reset --hard origin/main
 
-            echo "──────────────────────────────────────────"
-            echo "🏗️  Building Docker image (no cache)"
-            echo "──────────────────────────────────────────"
-            sudo docker compose build --no-cache
+            # Automatically clean up dangling images occasionally
+            sudo docker image prune -f
 
             echo "──────────────────────────────────────────"
-            echo "🔄 Restarting containers (zero-downtime)"
+            echo "🔐 Authenticating with GHCR on EC2"
             echo "──────────────────────────────────────────"
+            # Use the temporary GITHUB_TOKEN to pull the private image securely
+            echo "${{ secrets.GITHUB_TOKEN }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            echo "──────────────────────────────────────────"
+            echo "🔄 Pulling latest image and restarting containers"
+            echo "──────────────────────────────────────────"
+            sudo docker compose pull
             sudo docker compose up -d --remove-orphans
 
             echo "──────────────────────────────────────────"
-            echo "🧹 Cleaning up dangling images"
+            echo "👋 Logging out of GHCR"
             echo "──────────────────────────────────────────"
-            sudo docker image prune -f
+            sudo docker logout ghcr.io
 
             echo "──────────────────────────────────────────"
             echo "🏥 Waiting for health check to pass..."

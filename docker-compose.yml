@@ -1,17 +1,6 @@
 services:
   nextjs-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      # Inject NEXT_PUBLIC_* vars into the build stage only.
-      # These values come from .env.local on the EC2 server at build time.
-      args:
-        NEXT_PUBLIC_SUPABASE_URL:      ${NEXT_PUBLIC_SUPABASE_URL}
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
-        NEXT_PUBLIC_APP_URL:           ${NEXT_PUBLIC_APP_URL}
-        NEXT_PUBLIC_APP_NAME:          ${NEXT_PUBLIC_APP_NAME}
-
-    image: job-recommendation-app:latest
+    image: ghcr.io/bharatsirvi/job-search-automation:latest
     container_name: job-recommendation-app
 
     # Auto-restart on crash AND on EC2 reboot.
