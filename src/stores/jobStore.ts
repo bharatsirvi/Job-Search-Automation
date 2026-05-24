@@ -81,6 +81,8 @@ export const useJobStore = create<JobStore>()(
         set((state) => ({
           filterPresets: state.filterPresets.filter((p) => p.id !== id),
         })),
+
+      setHasNewNotification: (value) => set({ hasNewNotification: value }),
     }),
     {
       name: "jobsai-store",

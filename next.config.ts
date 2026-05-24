@@ -11,10 +11,6 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion", "recharts"],
-    // Note: turbopack is a dev-only feature; it is ignored in production builds.
-    turbopack: {
-      root: "./",
-    },
   },
 };
 
