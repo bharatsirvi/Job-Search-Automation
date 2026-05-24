@@ -58,10 +58,16 @@ jobs:
             set -euo pipefail   # Exit on error, undefined vars, pipe failures
 
             APP_DIR="/home/ubuntu/job-recommendation"
+            REPO_URL="https://github.com/bharatsirvi/Job-Search-Automation.git"
 
             echo "──────────────────────────────────────────"
-            echo "📁 Navigating to project directory"
+            echo "📁 Setting up project directory"
             echo "──────────────────────────────────────────"
+            if [ ! -d "$APP_DIR" ]; then
+              echo "Repository not found. Cloning for the first time..."
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+            
             cd "$APP_DIR"
 
             echo "──────────────────────────────────────────"
