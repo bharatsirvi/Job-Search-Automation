@@ -1,8 +1,8 @@
 "use client";
 
-import { Search, Bell, Sun, Moon, Command } from "lucide-react";
+import { Search, Bell, Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useJobStore } from "@/stores/jobStore";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -13,13 +13,10 @@ interface HeaderProps {
 }
 
 export function Header({ sidebarCollapsed, title }: HeaderProps) {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [searchFocused, setSearchFocused] = useState(false);
   const { setFilters, hasNewNotification, setHasNewNotification } = useJobStore();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -76,12 +73,10 @@ export function Header({ sidebarCollapsed, title }: HeaderProps) {
         {/* Theme Toggle */}
         <button
           id="theme-toggle-btn"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           className="w-9 h-9 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-all cursor-pointer"
         >
-          {!mounted ? (
-            <div className="w-4 h-4" />
-          ) : theme === "dark" ? (
+          {resolvedTheme === "dark" ? (
             <Sun className="w-4 h-4" />
           ) : (
             <Moon className="w-4 h-4" />

@@ -3,11 +3,11 @@
 import { motion } from "framer-motion";
 
 import type { Job } from "@/types";
+import Image from "next/image";
 import {
   formatRelativeDate,
   getScoreBg,
   formatScore,
-  getScoreLabel,
   getInitials,
   cn,
 } from "@/lib/utils";
@@ -16,7 +16,6 @@ import {
   ExternalLink,
   CheckCircle,
   MoreHorizontal,
-  Briefcase,
   Clock,
   Sparkles,
   Trash2,
@@ -28,7 +27,6 @@ import {
   useDeleteJob,
 } from "@/hooks/useJobs";
 import { useState, useRef, useEffect } from "react";
-import { useJobStore } from "@/stores/jobStore";
 
 interface JobCardProps {
   job: Job;
@@ -122,14 +120,13 @@ export function JobCard({
             {/* Company Logo */}
             <div className="w-11 h-11 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
               {job.company_logo ? (
-                <img
+                <Image
                   src={job.company_logo}
                   alt={job.company_name || ""}
+                  width={36}
+                  height={36}
                   className="w-9 h-9 object-contain"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                    (e.target as HTMLImageElement).parentElement!.innerHTML = `<span class="text-sm font-bold text-zinc-400">${getInitials(job.company_name)}</span>`;
-                  }}
+                  unoptimized
                 />
               ) : (
                 <span className="text-sm font-bold text-zinc-400 uppercase">

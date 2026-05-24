@@ -6,13 +6,23 @@ import type { JobFilters, SortField } from "@/types";
 import toast from "react-hot-toast";
 import { useJobStore } from "@/stores/jobStore";
 
+// Module-level singleton — avoids recreating the client on every render
+const supabase = createClient();
+
 export function useRealtimeJobs(
   filters: Partial<JobFilters>,
   sort: SortField
 ) {
   const qc = useQueryClient();
-  const supabase = createClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  // Refs to hold the latest filters/sort without re-subscribing on every change
+  const filtersRef = useRef(filters);
+  const sortRef = useRef(sort);
+
+  useEffect(() => {
+    // Sync latest values inside the effect (not during render)
+    filtersRef.current = filters;
+    sortRef.current = sort;
+  }); // no dep array = runs after every render, safely inside effect
 
   useEffect(() => {
     const channel = supabase
@@ -21,7 +31,7 @@ export function useRealtimeJobs(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "jobs" },
         () => {
-          qc.invalidateQueries({ queryKey: queryKeys.jobsInfinite(filters, sort) });
+          qc.invalidateQueries({ queryKey: queryKeys.jobsInfinite(filtersRef.current, sortRef.current) });
           qc.invalidateQueries({ queryKey: queryKeys.dashboard() });
           toast("✨ New job added!", {
             icon: "🎯",
@@ -41,16 +51,14 @@ export function useRealtimeJobs(
           const jobId = payload.new?.id;
           if (jobId) {
             qc.invalidateQueries({ queryKey: queryKeys.job(jobId) });
-            qc.invalidateQueries({ queryKey: queryKeys.jobsInfinite(filters, sort) });
+            qc.invalidateQueries({ queryKey: queryKeys.jobsInfinite(filtersRef.current, sortRef.current) });
           }
         }
       )
       .subscribe();
 
-    channelRef.current = channel;
-
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [qc]); // qc is stable; supabase is module-level; filters/sort read via refs
 }

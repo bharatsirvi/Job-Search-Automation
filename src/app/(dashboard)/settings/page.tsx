@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { motion } from "framer-motion";
-import { User, Bell, Shield, Palette, ChevronRight } from "lucide-react";
+import { User, Shield } from "lucide-react";
 
 export default function SettingsPage() {
   const { user } = useAuth();

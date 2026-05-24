@@ -19,11 +19,6 @@ const DATE_OPTIONS = [
   { value: new Date(Date.now() - 86400000 * 30).toISOString(), label: "Last 30 days" },
 ];
 
-interface Section {
-  title: string;
-  key: string;
-  open: boolean;
-}
 
 export function FilterPanel() {
   const { filters, setFilters, resetFilters } = useJobStore();
@@ -146,7 +141,6 @@ export function FilterPanel() {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function FilterSection({
   title,
-  sectionKey,
   open,
   onToggle,
   children,

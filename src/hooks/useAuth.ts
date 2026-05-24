@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User, Session } from "@supabase/supabase-js";
 
+// Module-level singleton — stable across renders, safe for client-only hooks.
+// useAuth is only used inside "use client" components so SSR is not a concern.
+const supabase = createClient();
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -23,7 +26,7 @@ export function useAuth() {
     );
 
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, []); // supabase is module-level stable, no dep needed
 
   const signInWithGoogle = () =>
     supabase.auth.signInWithOAuth({

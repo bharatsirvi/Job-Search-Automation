@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 const navItems = [
   {
@@ -51,7 +50,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {

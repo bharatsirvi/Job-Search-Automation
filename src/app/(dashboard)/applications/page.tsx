@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback, useState } from "react";
-import { useJobStore, DEFAULT_FILTERS } from "@/stores/jobStore";
+import { useJobStore } from "@/stores/jobStore";
 import { useInfiniteJobs } from "@/hooks/useJobs";
 import { JobCard, JobCardSkeleton } from "@/components/jobs/JobCard";
 import { ApplicationsFilterPanel } from "@/components/filters/ApplicationsFilterPanel";

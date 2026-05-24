@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Building2 } from "lucide-react";
 import { getInitials } from "@/lib/utils";
 
 interface TopCompaniesProps {

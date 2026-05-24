@@ -20,7 +20,7 @@ const DATE_OPTIONS = [
 ];
 
 export function ApplicationsFilterPanel() {
-  const { filters, setFilters, resetFilters } = useJobStore();
+  const { filters, setFilters } = useJobStore();
   const [sections, setSections] = useState<Record<string, boolean>>({
     score: true,
     date: true,

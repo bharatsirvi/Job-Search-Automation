@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import type { Job } from "@/types";
 import { formatRelativeDate, getScoreBg, formatScore } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
@@ -79,13 +80,13 @@ export function RecentActivity({ jobs, loading }: RecentActivityProps) {
                   {/* Logo */}
                   <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0 border border-zinc-700">
                     {job.company_logo ? (
-                      <img
+                      <Image
                         src={job.company_logo}
                         alt={job.company_name || ""}
+                        width={32}
+                        height={32}
                         className="w-8 h-8 object-contain rounded"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
+                        unoptimized
                       />
                     ) : (
                       <span className="text-xs font-bold text-zinc-500 uppercase">
